@@ -14,14 +14,8 @@ description = "Fast-math wrappers for floats; experimental and unstable; for exp
 keywords = []
 categories = []
 
+edition = "2018"
+
 [dependencies]
-num-traits = { version = "0.2.14", optional = true }
-
-[features]
-std = []
-
-[package.metadata.docs.rs]
-features = ["num-traits"]
-
-[package.metadata.release]
-no-dev-version = true
+num-traits = "0.2"
+num-derive = "0.3"
