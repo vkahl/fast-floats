@@ -23,75 +23,54 @@ use std::{
 
 use num_derive::{Float, One, Zero, Num, NumCast, ToPrimitive, FromPrimitive};
 
-#[derive(Copy, Clone, PartialEq, PartialOrd, Default, ToPrimitive, FromPrimitive, Num, NumCast, Zero, One, Float)]
-#[repr(transparent)]
-pub struct FF32(pub f32);
+macro_rules! float_wrapper {
+    ($name: ident ($t: ty)) => {
+        #[derive(Copy, Clone, PartialEq, PartialOrd, Default, ToPrimitive, FromPrimitive, Num, NumCast, Zero, One, Float)]
+        #[repr(transparent)]
+        pub struct $name(pub $t);
 
-#[derive(Copy, Clone, PartialEq, PartialOrd, Default, ToPrimitive, FromPrimitive, Num, NumCast, Zero, One, Float)]
-#[repr(transparent)]
-pub struct FF64(pub f64);
+        impl $name {
+            /// Get the inner value
+            #[inline(always)]
+            pub fn get(self) -> $t {
+                self.0
+            }
+        }
 
-impl FF32 {
-    /// Get the inner value
-    #[inline(always)]
-    pub fn get(self) -> f32 {
-        self.0
-    }
+        impl From<$t> for $name {
+            #[inline(always)]
+            fn from(other: $t) -> Self {
+                $name(other)
+            }
+        }
+
+        impl From<$name> for $t {
+            #[inline(always)]
+            fn from(other: $name) -> $t {
+                other.get()
+            }
+        }
+
+        impl Neg for $name {
+            type Output = $name;
+        
+            #[inline(always)]
+            fn neg(self) -> Self::Output {
+                self.0.neg().into()
+            }
+        }
+
+        impl $name {
+            #[inline(always)]
+            pub fn round(self) -> Self {
+                self.0.round().into()
+            }
+        }
+    };
 }
 
-impl FF64 {
-    /// Get the inner value
-    #[inline(always)]
-    pub fn get(self) -> f64 {
-        self.0
-    }
-}
-
-impl From<f32> for FF32 {
-    #[inline(always)]
-    fn from(x: f32) -> Self {
-        FF32(x)
-    }
-}
-
-impl From<f64> for FF64 {
-    #[inline(always)]
-    fn from(x: f64) -> Self {
-        FF64(x)
-    }
-}
-
-impl Into<f32> for FF32 {
-    #[inline(always)]
-    fn into(self) -> f32 {
-        self.get()
-    }
-}
-
-impl Into<f64> for FF64 {
-    #[inline(always)]
-    fn into(self) -> f64 {
-        self.get()
-    }
-}
-
-impl Neg for FF32 {
-    type Output = FF32;
-
-    #[inline(always)]
-    fn neg(self) -> Self::Output {
-        self.0.neg().into()
-    }
-}
-
-impl Neg for FF64 {
-    type Output = FF64;
-
-    #[inline(always)]
-    fn neg(self) -> Self::Output {
-        self.0.neg().into()
-    }
-}
+float_wrapper! { FF32(f32) }
+float_wrapper! { FF64(f64) }
 
 macro_rules! impl_op {
     ($($name:ident, $method:ident, $intrins:ident;)*) => {
